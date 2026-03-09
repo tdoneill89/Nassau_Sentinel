@@ -1,0 +1,45 @@
+name: Nassau County Housing Watchdog
+
+on:
+  # Run every day at 8:00 AM Eastern (12:00 UTC)
+  schedule:
+    - cron: "0 12 * * *"
+
+  # Also allow manual runs from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  scrape-and-alert:
+    runs-on: ubuntu-latest
+
+    # Grant permission to commit the updated state file back to the repo
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run watchdog
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python main.py
+
+      # Commit the updated seen_items.json back to the repo so state
+      # persists between daily runs (this is our free "database").
+      - name: Save state back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_items.json
+          git diff --staged --quiet || git commit -m "chore: update watchdog state [skip ci]"
+          git push
