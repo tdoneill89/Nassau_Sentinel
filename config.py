@@ -27,6 +27,10 @@ KEYWORDS = [
     "485-a", "485-b", "421-a", "421a", "421g",
     "Pro-Housing", "housing compact", "City of Yes",
     "Governor Hochul", "New York Housing Compact",
+    "home rule", "home-rule override", "zoning preemption",
+    "General Project Plan", "Empire State Development",
+    "LIRR station area", "station area planning",
+    "housing budget", "housing in the budget",
 
     # Generic density signals
     "apartment complex", "mixed income", "workforce housing",
@@ -70,7 +74,29 @@ SOURCES = [
         "type": "html",
     },
 
-    # ---- NYS LEGISLATION ----
+    # ---- NYS GOVERNOR'S OFFICE ----
+    {
+        "name": "Governor Hochul - Press Releases",
+        "url": "https://www.governor.ny.gov/news",
+        "type": "html",
+    },
+    {
+        "name": "Governor Hochul - Housing Initiatives",
+        "url": "https://www.governor.ny.gov/programs/pro-housing-communities",
+        "type": "html",
+    },
+
+    # ---- NYS LEGISLATURE ----
+    {
+        "name": "NY Senate Housing Committee",
+        "url": "https://www.nysenate.gov/committees/housing-construction-and-community-development",
+        "type": "html",
+    },
+    {
+        "name": "NY Assembly Housing Committee",
+        "url": "https://nyassembly.gov/comm/?id=19",
+        "type": "html",
+    },
     {
         "name": "NY Senate - Housing Bills Search",
         "url": "https://www.nysenate.gov/legislation/bills/2025?search=housing+density+multifamily",
@@ -79,6 +105,28 @@ SOURCES = [
     {
         "name": "NY Senate - Zoning Bills Search",
         "url": "https://www.nysenate.gov/legislation/bills/2025?search=zoning+affordable+housing",
+        "type": "html",
+    },
+    {
+        "name": "NY Senate - TOD Bills Search",
+        "url": "https://www.nysenate.gov/legislation/bills/2025?search=transit+oriented+development+Long+Island",
+        "type": "html",
+    },
+    {
+        "name": "NY Senate - Home Rule Override Search",
+        "url": "https://www.nysenate.gov/legislation/bills/2025?search=home+rule+zoning+override",
+        "type": "html",
+    },
+
+    # ---- NYS AGENCIES ----
+    {
+        "name": "NYS Department of State - Pro-Housing Communities",
+        "url": "https://dos.ny.gov/pro-housing-communities",
+        "type": "html",
+    },
+    {
+        "name": "Empire State Development - Press Releases",
+        "url": "https://esd.ny.gov/esd-media-center/press-releases",
         "type": "html",
     },
 
