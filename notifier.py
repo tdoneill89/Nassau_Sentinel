@@ -1,7 +1,6 @@
 """
 notifier.py — Sends Telegram alerts with AI-generated summaries.
-Uses Claude claude-haiku-4-5-20251001 to write a 2-4 sentence plain-English summary
-of each finding before sending it to Telegram.
+Uses Claude Haiku to summarize each finding and extract meeting/hearing/vote dates.
 """
 
 import requests
@@ -14,25 +13,39 @@ MAX_MSG_LENGTH = 4000
 
 def _generate_summary(item: dict) -> str:
     """
-    Call Claude claude-haiku-4-5-20251001 to produce a 2-4 sentence plain-English
-    summary of what was found and why Nassau County residents should care.
+    Call Claude Haiku to summarize the finding and extract any meeting,
+    public hearing, or vote dates mentioned in the source text.
     Falls back to the raw snippet if the API call fails.
     """
     if not ANTHROPIC_API_KEY:
         return item["snippet"][:400]
 
     prompt = (
-        f"You are a civic alert assistant for Nassau County, Long Island homeowners "
-        f"who are concerned about high-density housing development in their communities.\n\n"
+        f"You are a civic alert assistant for Long Island homeowners who are concerned "
+        f"about high-density housing development in their communities.\n\n"
         f"Here is a news item or government document that was flagged:\n"
         f"Source: {item['source_name']}\n"
         f"Title: {item['title']}\n"
         f"Keywords matched: {', '.join(item['matched_keywords'])}\n"
         f"Text snippet: {item['snippet'][:800]}\n\n"
-        f"Write 2 to 4 plain-English sentences summarizing what this is about and "
-        f"why a Nassau County homeowner should pay attention to it. "
-        f"Be specific about location, number of units, or type of development if mentioned. "
-        f"Do not editorialize or take a political position. Just summarize the facts clearly."
+        f"Write a clear, factual alert using this exact structure:\n\n"
+        f"PART 1 - What is proposed: 2-3 sentences describing the development. "
+        f"Include the specific location or address, number of units, type of building "
+        f"(apartments, mixed-use, condos, townhomes, etc.), and the developer or "
+        f"applicant name if mentioned.\n\n"
+        f"PART 2 - Current status: One sentence describing where this is in the "
+        f"approval process — is it a new application, a public hearing, a planning "
+        f"board review, a zoning board vote, or already approved?\n\n"
+        f"PART 3 - Meeting date: Look carefully through the text for any upcoming "
+        f"meeting date, public hearing date, or vote date. "
+        f"If found, write exactly: 'Upcoming Meeting: [date, time, and location if available]' "
+        f"If no date is found, write exactly: "
+        f"'Meeting date not yet announced - check source link for updates.'\n\n"
+        f"PART 4 - Call to action: Always end with exactly this line: "
+        f"'Residents who wish to be heard should attend the public hearing "
+        f"or contact their local board before the vote.'\n\n"
+        f"Do not add PART 1, PART 2 etc labels. Just write the content naturally. "
+        f"Do not editorialize or take a political position. Facts only."
     )
 
     try:
@@ -45,7 +58,7 @@ def _generate_summary(item: dict) -> str:
             },
             json={
                 "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 200,
+                "max_tokens": 350,
                 "messages": [{"role": "user", "content": prompt}],
             },
             timeout=20,
@@ -80,25 +93,22 @@ def _send_raw(text: str) -> bool:
 
 
 def format_item(item: dict, summary: str) -> str:
-    """Format a single finding into a readable Telegram message block."""
+    """Format a single finding into a readable Telegram message."""
     keywords_str = ", ".join(f"<b>{kw}</b>" for kw in item["matched_keywords"])
-    url_line = f'\n🔗 <a href="{item["url"]}">Read more</a>' if item["url"] else ""
+    url_line = f'\n\n🔗 <a href="{item["url"]}">Read full article / agenda</a>' if item["url"] else ""
 
     return (
         f"🚨 <b>Nassau Sentinel Alert</b>\n\n"
         f"📍 <b>Source:</b> {item['source_name']}\n"
         f"📄 <b>Title:</b> {item['title']}\n"
         f"🔑 <b>Keywords:</b> {keywords_str}\n\n"
-        f"📝 <b>Summary:</b>\n{summary}"
+        f"{summary}"
         f"{url_line}"
     )
 
 
 def send_alerts(new_items: list[dict]) -> None:
-    """
-    Send one Telegram message per new item.
-    Each message includes an AI-generated 2-4 sentence summary.
-    """
+    """Send one Telegram message per new item with AI summary and meeting dates."""
     if not new_items:
         print("  [NOTIFY] No new items to send.")
         return
