@@ -31,9 +31,17 @@ def normalize(text: str) -> str:
 
 
 def find_keyword_matches(text: str) -> list[str]:
-    """Return list of keywords found in text."""
+    """Return list of keywords found in text using whole-word matching.
+    Prevents short acronyms like ADU matching inside words like Adult.
+    """
     normalized = normalize(text)
-    return [kw for kw in KEYWORDS if kw.lower() in normalized]
+    matches = []
+    for kw in KEYWORDS:
+        # Use word boundary regex so ADU won't match inside "Adult"
+        pattern = r'\b' + re.escape(kw.lower()) + r'\b'
+        if re.search(pattern, normalized):
+            matches.append(kw)
+    return matches
 
 
 def is_pdf_url(url: str) -> bool:
